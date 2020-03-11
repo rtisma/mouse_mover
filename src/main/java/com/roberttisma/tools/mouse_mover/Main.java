@@ -1,56 +1,55 @@
 package com.roberttisma.tools.mouse_mover;
 
+import com.roberttisma.tools.mouse_mover.config.AppConfig;
+import com.roberttisma.tools.mouse_mover.model.Blueprint;
+import com.roberttisma.tools.mouse_mover.model.CircleBlueprint;
+
 import java.awt.*;
 import java.util.ArrayList;
 
-import static java.lang.Math.cos;
-import static java.lang.Math.floorMod;
-import static java.lang.Math.min;
-import static java.lang.Math.sin;
+import static java.awt.Toolkit.getDefaultToolkit;
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Double.parseDouble;
+import static java.lang.Long.parseLong;
 
 public class Main {
 
   public static void main(String[] args) throws Throwable{
+    AppConfig c = parseConfig(args);
+    System.out.println(c);
     Robot robot = new Robot();
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    Point centerPoint = new Point((int)screenSize.getWidth()/2, (int)screenSize.getHeight()/2);
-    int radius = (int)min(screenSize.getHeight(), screenSize.getWidth())/4;
-    ArrayList<Point> points = generateCirclePoints3(centerPoint, radius, 0.03);
+    Dimension screenSize = getDefaultToolkit().getScreenSize();
+    Blueprint blueprint = new CircleBlueprint(screenSize, c.getResolution());
+    ArrayList<Point> points = blueprint.getBlueprint();
+    Mover mover = new Mover(robot, points, c.getDelayMs(), c.getDurationMs());
+    mover.run();
+    hang(!c.isExitOnCompletion());
+  }
 
-    Point firstPoint = points.get(0);
-    robot.mouseMove((int)firstPoint.getX(), (int)firstPoint.getY());
-
-    long delay = 5;
-    Point currPoint = MouseInfo.getPointerInfo().getLocation();
-    Point actualPoint = currPoint;
-    int currIdx = 0;
-    while(true){
-      if (!actualPoint.equals(currPoint)){
-        break;
+  private static void hang(boolean enable) {
+    if (enable){
+      Object kill = new Object();
+      try {
+        synchronized (kill) {
+          System.out.println("Program successfully done. Please kill this process manually...");
+          while(true){
+            kill.wait();
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        throw new IllegalStateException(e);
       }
-      currIdx= floorMod(currIdx+1, points.size());
-      currPoint = points.get(currIdx);
-
-      robot.mouseMove((int)currPoint.getX(), (int)currPoint.getY());
-      Thread.sleep(delay);
-      actualPoint = MouseInfo.getPointerInfo().getLocation();
     }
   }
 
-  private static ArrayList<Point> generateCirclePoints3(Point center, int radius, double tx){
-    ArrayList<Point> points = new ArrayList<Point>();
-    double xCenter = center.getX();
-    double yCenter = center.getY();
-    double y;
-    double x;
-    for (double theta=0; theta<2*Math.PI; theta += tx){
-      x = radius* sin(theta);
-      y = radius* cos(theta);
-      Point p = new Point();
-      p.setLocation(x+xCenter, y+yCenter);
-      points.add(p);
-    }
-    return points;
+  private static AppConfig parseConfig(String[] args){
+    int i=0;
+    long durationSeconds = parseLong(args[i++]);
+    long delayMs = parseLong(args[i++]);
+    double resolution = parseDouble(args[i++]);
+    boolean exitOnCompletion = parseBoolean(args[i++]);
+    return new AppConfig(durationSeconds, delayMs, resolution, exitOnCompletion);
   }
 
 }
