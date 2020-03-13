@@ -1,10 +1,12 @@
 package com.roberttisma.tools.mouse_mover;
 
 import com.roberttisma.tools.mouse_mover.config.AppConfig;
+import com.roberttisma.tools.mouse_mover.gui.GUI;
 import com.roberttisma.tools.mouse_mover.model.Blueprint;
 import com.roberttisma.tools.mouse_mover.model.CircleBlueprint;
 
 import java.awt.*;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 import static java.awt.Toolkit.getDefaultToolkit;
@@ -12,19 +14,42 @@ import static java.lang.Boolean.parseBoolean;
 import static java.lang.Double.parseDouble;
 import static java.lang.Long.parseLong;
 
-public class Main {
+public class Processor {
 
-  public static void main(String[] args) throws Throwable{
-    AppConfig c = parseConfig(args);
-    System.out.println(c);
+  private final AppConfig c;
+  private final StringListener listener;
+
+  public static interface StringListener{
+
+    void publishString(String s);
+
+  }
+  public Processor(AppConfig c, StringListener listener) {
+    this.c = c;
+    this.listener = listener;
+  }
+
+  public void run() throws Exception{
     Robot robot = new Robot();
     Dimension screenSize = getDefaultToolkit().getScreenSize();
     Blueprint blueprint = new CircleBlueprint(screenSize, c.getResolution());
     ArrayList<Point> points = blueprint.getBlueprint();
-    Mover mover = new Mover(robot, points, c.getDelayMs(), c.getDurationMs());
+    Mover mover = new Mover(robot, points, c.getDelayMs(), c.getDurationMs(), listener);
     mover.run();
-    hang(!c.isExitOnCompletion());
+//    hang(!c.isExitOnCompletion());
   }
+
+//  public static void main2(String[] args) throws Throwable{
+//    AppConfig c = parseConfig(args);
+//    System.out.println(c);
+//    Robot robot = new Robot();
+//    Dimension screenSize = getDefaultToolkit().getScreenSize();
+//    Blueprint blueprint = new CircleBlueprint(screenSize, c.getResolution());
+//    ArrayList<Point> points = blueprint.getBlueprint();
+//    Mover mover = new Mover(robot, points, c.getDelayMs(), c.getDurationMs());
+//    mover.run();
+//    hang(!c.isExitOnCompletion());
+//  }
 
   private static void hang(boolean enable) {
     if (enable){
