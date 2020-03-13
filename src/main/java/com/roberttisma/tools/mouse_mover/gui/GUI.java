@@ -10,6 +10,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
 
 import static java.awt.Toolkit.getDefaultToolkit;
 
@@ -27,8 +30,6 @@ public class GUI {
   private JPanel resolutionPanel;
   private JLabel resolutionLabel;
   private JTextField resolutionTF;
-  private JPanel exitOnCompletionPanel;
-  private JCheckBox exitOnCompletionCheckBox;
   private JPanel executePanel;
   private JButton startButton;
   private JButton resetButton;
@@ -36,13 +37,24 @@ public class GUI {
   private JProgressBar progressBar1;
   private JTextField countdownTF;
   private JLabel countdownInSecondsLabel;
+  private JPanel controlPanel;
+  private JPanel outputPanel;
+  private JPanel rightPanel;
+  private JPanel sessionPanel;
+  private JList list1;
+  private JButton saveButton;
+  private JButton loadButton;
+  private JButton deleteButton;
+  private JPanel savePanel;
+  private JTextField saveTF;
+
+  private Map<String, AppConfig> db = new HashMap<String, AppConfig>();
 
   private AppConfig getConfig(){
     long durationSeconds = Long.parseLong(durationTF.getText());
     long delayMs = Long.parseLong(delayTF.getText());
     double resolution = Double.parseDouble(resolutionTF.getText());
-    boolean exitOnCompletion = exitOnCompletionCheckBox.isSelected();
-    return new AppConfig(durationSeconds, delayMs, resolution, exitOnCompletion);
+    return new AppConfig(durationSeconds, delayMs, resolution, false);
   }
 
   private static void sleep(long ms){
@@ -66,6 +78,7 @@ public class GUI {
   }
 
   public GUI() {
+    updateList();
     startButton.addActionListener(new ActionListener() {
 
       @Override public void actionPerformed(ActionEvent actionEvent) {
@@ -98,20 +111,51 @@ public class GUI {
         durationTF.setText(Long.toString(DEFAULT_APP_CONFIG.getDurationMs()/1000));
         delayTF.setText(Long.toString(DEFAULT_APP_CONFIG.getDelayMs()));
         resolutionTF.setText(Double.toString(DEFAULT_APP_CONFIG.getResolution()));
-        exitOnCompletionCheckBox.setSelected(DEFAULT_APP_CONFIG.isExitOnCompletion());
         console.setText("");
       }
     });
+    saveButton.addActionListener(new ActionListener() {
+      @Override public void actionPerformed(ActionEvent actionEvent) {
+        db.put(saveTF.getText(), getConfig());
+        saveTF.setText("");
+        updateList();
+      }
+    });
+    deleteButton.addActionListener(new ActionListener() {
+
+      @Override public void actionPerformed(ActionEvent actionEvent) {
+        db.remove(list1.getSelectedValue());
+        updateList();
+      }
+    });
+    loadButton.addActionListener(new ActionListener() {
+
+      @Override public void actionPerformed(ActionEvent actionEvent) {
+        AppConfig c = db.get((String)list1.getSelectedValue());
+        loadConfig(c);
+      }
+
+    });
   }
 
+  private void updateList(){
+    list1.setListData( new Vector<String>(db.keySet()));
+  }
+
+  private void loadConfig(AppConfig c){
+    durationTF.setText(Long.toString(c.getDurationMs()/1000));
+    delayTF.setText(Long.toString(c.getDelayMs()));
+    resolutionTF.setText(Double.toString(c.getResolution()));
+    console.setText("");
+  }
 
   public static void main(String[] args){
     JFrame jFrame = new JFrame("BMK Randy");
     jFrame.setContentPane(new GUI().panel1);
     jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    Dimension screenSize = getDefaultToolkit().getScreenSize();
-    jFrame.setMinimumSize(new Dimension(600,600));
-    jFrame.setPreferredSize(new Dimension((int)(screenSize.getWidth()/4), (int)(screenSize.getHeight()/4)));
+//    Dimension screenSize = getDefaultToolkit().getScreenSize();
+////    jFrame.setMinimumSize(new Dimension(600,600));
+////    jFrame.setPreferredSize(new Dimension((int)(screenSize.getWidth()/4), (int)(screenSize.getHeight()/4)));
     jFrame.pack();;
     jFrame.setVisible(true);
 
