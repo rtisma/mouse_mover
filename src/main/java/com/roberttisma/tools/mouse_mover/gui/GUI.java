@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 
@@ -32,8 +33,9 @@ public class GUI {
   private JButton startButton;
   private JButton resetButton;
   private JTextPane console;
-
-
+  private JProgressBar progressBar1;
+  private JTextField countdownTF;
+  private JLabel countdownInSecondsLabel;
 
   private AppConfig getConfig(){
     long durationSeconds = Long.parseLong(durationTF.getText());
@@ -43,6 +45,26 @@ public class GUI {
     return new AppConfig(durationSeconds, delayMs, resolution, exitOnCompletion);
   }
 
+  private static void sleep(long ms){
+    try {
+      Thread.sleep(ms);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void progressBarLoad(){
+    int seconds = Integer.parseInt(countdownTF.getText());
+    long res = 500;
+    long slices = seconds*(1000/res);
+    for (int s=1; s<=slices; s++){
+      int v = (int)((s*100)/slices);
+      sleep(res);
+      progressBar1.setValue(v);
+    }
+    progressBar1.setValue(0);
+  }
+
   public GUI() {
     startButton.addActionListener(new ActionListener() {
 
@@ -50,7 +72,10 @@ public class GUI {
         new Thread(new Runnable() {
 
           @Override public void run() {
+
             console.setText("");
+            progressBarLoad();
+
             final AppConfig appConfig = getConfig();
             try {
               Processor p = new Processor(appConfig, new Processor.StringListener() {
