@@ -1,12 +1,10 @@
 package com.roberttisma.tools.mouse_mover;
 
-import com.roberttisma.tools.mouse_mover.config.AppConfig;
-import com.roberttisma.tools.mouse_mover.gui.GUI;
+import com.roberttisma.tools.mouse_mover.model.AppConfig;
 import com.roberttisma.tools.mouse_mover.model.Blueprint;
 import com.roberttisma.tools.mouse_mover.model.CircleBlueprint;
 
 import java.awt.*;
-import java.io.OutputStream;
 import java.util.ArrayList;
 
 import static java.awt.Toolkit.getDefaultToolkit;

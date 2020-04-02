@@ -1,12 +1,14 @@
-package com.roberttisma.tools.mouse_mover.config;
+package com.roberttisma.tools.mouse_mover.model;
 
-import com.roberttisma.tools.mouse_mover.model.Duration;
+import com.roberttisma.tools.mouse_mover.serialization.Deserializer;
+import com.roberttisma.tools.mouse_mover.serialization.Serializer;
 
-import java.util.Date;
-
-import static com.roberttisma.tools.mouse_mover.model.Duration.createDuration;
+import static com.roberttisma.tools.mouse_mover.utils.Checks.checkArgument;
+import static com.roberttisma.tools.mouse_mover.utils.Checks.checkNotNull;
+import static com.roberttisma.tools.mouse_mover.utils.Strings.checkBlank;
 
 public class AppConfig {
+
   private final long durationMs;
   private final long delayMs;
   private final double resolution;
@@ -42,4 +44,5 @@ public class AppConfig {
         "\nResolution:        " + resolution +
         "\nExitOnCompletion:  " + exitOnCompletion;
   }
+
 }

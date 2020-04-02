@@ -1,24 +1,22 @@
 package com.roberttisma.tools.mouse_mover.gui;
 
 import com.roberttisma.tools.mouse_mover.Processor;
-import com.roberttisma.tools.mouse_mover.config.AppConfig;
+import com.roberttisma.tools.mouse_mover.entity.AppConfigEntity;
+import com.roberttisma.tools.mouse_mover.model.AppConfig;
+import com.roberttisma.tools.mouse_mover.repository.AppConfigEntityRepository;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
+import java.io.File;
 
-import static java.awt.Toolkit.getDefaultToolkit;
+import static com.roberttisma.tools.mouse_mover.entity.AppConfigEntity.createAppConfigEntity;
+import static com.roberttisma.tools.mouse_mover.utils.Files.provisionFile;
 
 public class GUI {
 
   private static final AppConfig DEFAULT_APP_CONFIG = new AppConfig(-1, 1000, 0.3, false);
+  private static AppConfigEntityRepository APP_CONFIG_ENTITY_REPOSITORY = new AppConfigEntityRepository(getStorageFile());
 
   private JPanel panel1;
   private JPanel durationPanel;
@@ -48,7 +46,12 @@ public class GUI {
   private JPanel savePanel;
   private JTextField saveTF;
 
-  private Map<String, AppConfig> db = new HashMap<String, AppConfig>();
+  private static File getStorageFile() {
+    File storageFile = new File(System.getProperty("user.home")+File.separator+"mouse_mover_config.csv");
+    provisionFile(storageFile);
+    return storageFile;
+  }
+
 
   private AppConfig getConfig(){
     long durationSeconds = Long.parseLong(durationTF.getText());
@@ -116,7 +119,7 @@ public class GUI {
     });
     saveButton.addActionListener(new ActionListener() {
       @Override public void actionPerformed(ActionEvent actionEvent) {
-        db.put(saveTF.getText(), getConfig());
+        APP_CONFIG_ENTITY_REPOSITORY.save(createAppConfigEntity(saveTF.getText(), getConfig()));
         saveTF.setText("");
         updateList();
       }
@@ -124,14 +127,14 @@ public class GUI {
     deleteButton.addActionListener(new ActionListener() {
 
       @Override public void actionPerformed(ActionEvent actionEvent) {
-        db.remove(list1.getSelectedValue());
+        APP_CONFIG_ENTITY_REPOSITORY.delete(list1.getSelectedValue().toString());
         updateList();
       }
     });
     loadButton.addActionListener(new ActionListener() {
 
       @Override public void actionPerformed(ActionEvent actionEvent) {
-        AppConfig c = db.get((String)list1.getSelectedValue());
+        AppConfigEntity c = APP_CONFIG_ENTITY_REPOSITORY.findOne(list1.getSelectedValue().toString());
         loadConfig(c);
       }
 
@@ -139,10 +142,10 @@ public class GUI {
   }
 
   private void updateList(){
-    list1.setListData( new Vector<String>(db.keySet()));
+    list1.setListData(APP_CONFIG_ENTITY_REPOSITORY.listIds().toArray());
   }
 
-  private void loadConfig(AppConfig c){
+  private void loadConfig(AppConfigEntity c){
     durationTF.setText(Long.toString(c.getDurationMs()/1000));
     delayTF.setText(Long.toString(c.getDelayMs()));
     resolutionTF.setText(Double.toString(c.getResolution()));
